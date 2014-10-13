@@ -1,0 +1,27 @@
+{
+  "name": "logic-filter-strings",
+  "version": "0.0.0",
+  "description": "An algebraic expression parser for stream logic filters",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/covert/bin/cmd.js ./test/*.js"
+  },
+  "keywords": [
+    "logic",
+    "filter",
+    "algebraic",
+    "expressions",
+    "json",
+    "object",
+    "stream"
+  ],
+  "author": [
+    "Phoebe Simon <phoebesimon@gmail.com>",
+    "Justin Gallardo <justin.gallardo@gmail.com>"
+  ],
+  "license": "Apache V2",
+  "devDependencies": {
+    "covert": "^1.0.1",
+    "tape": "^3.0.0"
+  }
+}
