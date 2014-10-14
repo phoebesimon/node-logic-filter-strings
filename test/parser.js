@@ -123,13 +123,13 @@ test('simple expressions', function(t) {
 
   t.deepEqual(
     parser.expression.parse('foo || bar === "baz"').value,
-    [['foo'], '||', [['bar', '===', 'baz']]],
+    [['foo'], '||', ['bar', '===', 'baz']],
     'foo exists or bar strictly equals baz'
   );
 
   t.deepEqual(
     parser.expression.parse('foo || bar === [1,2,3]').value,
-    [['foo'], '||', [['bar', '===', [1, 2, 3]]]],
+    [['foo'], '||', ['bar', '===', [1, 2, 3]]],
     'foo exists or bar strictly equals [1, 2, 3]'
   );
 
@@ -151,7 +151,48 @@ test('simple notted expressions', function(t) {
 test('filter', function(t) {
   t.deepEqual(
     parser.filter.parse('!(foo && bar) && (baz == "qux" || qux == "foo")').value,
-    [['!', [['foo'], '&&', ['bar']]], '&&', [[['baz', '==', 'qux']], '||', [['qux', '==', 'foo']]]],
+    [['!', [['foo'], '&&', ['bar']]], '&&', [['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]],
+    'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
+  );
+  t.deepEqual(
+    parser.filter.parse('!(foo && bar == "baz")').value,
+    [
+      // notted expression
+      ['!', // not
+        [ //grouped expression
+          [
+            'foo' //key
+          ],
+          '&&', //operator
+          [
+            'bar', '==', 'baz' //condition
+          ]
+        ]
+      ]
+    ],
+    'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
+  );
+
+  console.log(parser.filter.parse('!(foo == "baz")'));
+  t.deepEqual(
+    parser.filter.parse('!(foo == "baz")').value,
+    [
+      [
+        // notted expression
+        '!', //not
+        [ //condition
+          'foo',
+          '==',
+          'baz'
+        ]
+      ]
+    ],
+    'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo && bar && !(baz == "qux" || qux == "foo")').value,
+    [[['foo'], '&&', ['bar']], '&&', ['!', ['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]],
     'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
   );
 
