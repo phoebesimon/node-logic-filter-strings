@@ -117,19 +117,19 @@ test('simple predicates', function(t) {
 test('simple expressions', function(t) {
   t.deepEqual(
     parser.expression.parse('!foo && bar').value,
-    ['!foo', '&&', 'bar'],
+    [['!foo'], '&&', ['bar']],
     'foo does not exist and bar exists'
   );
 
   t.deepEqual(
     parser.expression.parse('foo || bar === "baz"').value,
-    ['foo', '||', ['bar', '===', 'baz']],
+    [['foo'], '||', [['bar', '===', 'baz']]],
     'foo exists or bar strictly equals baz'
   );
 
   t.deepEqual(
     parser.expression.parse('foo || bar === [1,2,3]').value,
-    ['foo', '||', ['bar', '===', [1, 2, 3]]],
+    [['foo'], '||', [['bar', '===', [1, 2, 3]]]],
     'foo exists or bar strictly equals [1, 2, 3]'
   );
 
@@ -140,8 +140,19 @@ test('simple expressions', function(t) {
 test('simple notted expressions', function(t) {
   t.deepEqual(
     parser.nottedExpression.parse('!(foo && bar)').value,
-    ['!', ['foo', '&&', 'bar']],
+    ['!', [['foo'], '&&', ['bar']]],
     'if not foo and bar'
+  );
+
+  t.end();
+});
+
+
+test('filter', function(t) {
+  t.deepEqual(
+    parser.filter.parse('!(foo && bar) && (baz == "qux" || qux == "foo")').value,
+    [['!', [['foo'], '&&', ['bar']]], '&&', [[['baz', '==', 'qux']], '||', [['qux', '==', 'foo']]]],
+    'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
   );
 
   t.end();
