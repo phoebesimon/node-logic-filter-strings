@@ -23,5 +23,8 @@
   "devDependencies": {
     "covert": "^1.0.1",
     "tape": "^3.0.0"
+  },
+  "dependencies": {
+    "parsimmon": "~0.5.1"
   }
 }

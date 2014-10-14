@@ -6,7 +6,7 @@ var logicFilterString = require('../index.js');
 test('simplest filter', function(t) {
   var filter = 'foo === "bar"';
 
-  t.deepEqual(logicFilterString(filter), {'foo': 'bar'}, 'Simple filter parses');
+  t.deepEqual(logicFilterString.parse(filter), {'foo': 'bar'}, 'Simple filter parses');
   t.end();
 });
 
@@ -14,7 +14,7 @@ test('simplest filter', function(t) {
 test('simple and filter', function(t) {
   var filter = 'foo === "bar"&&bar === "baz qux"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     and: {
       'foo': 'bar',
       'bar': 'baz'
@@ -28,7 +28,7 @@ test('simple and filter', function(t) {
 test('simple or filter', function(t) {
   var filter = 'foo === "bar" || bar === "baz qux"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     or: {
       'foo': 'bar',
       'bar': 'baz'
@@ -42,7 +42,7 @@ test('simple or filter', function(t) {
 test('simple not filter', function(t) {
   var filter = 'foo !== "bar"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       'foo': 'bar'
     }
@@ -55,7 +55,7 @@ test('simple not filter', function(t) {
 test('and->nots filter (De Morgans)', function(t) {
   var filter = 'foo !== "bar" && bar !== "baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       or: {
         'foo': 'bar',
@@ -71,7 +71,7 @@ test('and->nots filter (De Morgans)', function(t) {
 test('not->or filter (De Morgans)', function(t) {
   var filter = '!(foo === "bar" || bar === "baz")';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       or: {
         'foo': 'bar',
@@ -87,7 +87,7 @@ test('not->or filter (De Morgans)', function(t) {
 test('or->nots filter (De Morgans)', function(t) {
   var filter = 'foo !== "bar" || bar !== "baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       and: {
         'foo': 'bar',
@@ -103,7 +103,7 @@ test('or->nots filter (De Morgans)', function(t) {
 test('not->and filter (De Morgans)', function(t) {
   var filter = '!(foo === "bar" && bar === "baz")';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       and: {
         'foo': 'bar',
@@ -119,7 +119,7 @@ test('not->and filter (De Morgans)', function(t) {
 test('or->and filter', function(t) {
   var filter = '(foo === "bar" && bar === "baz") || qux === "foo"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     or: {
       and: {
         'foo': 'bar',
@@ -136,7 +136,7 @@ test('or->and filter', function(t) {
 test('and->exists filter', function(t) {
   var filter = 'foo && bar =="baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     and: {
       foo: {
         exists: true
@@ -152,7 +152,7 @@ test('and->exists filter', function(t) {
 test('and->not exists filter', function(t) {
   var filter = '!foo && bar =="baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     and: {
       foo: {
         exists: false
@@ -168,7 +168,7 @@ test('and->not exists filter', function(t) {
 test('any filter', function(t) {
   var filter = '(foo === "baz" || foo === "bar" || foo === "qux")';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: ['baz', 'bar', 'qux']
   },
   'Any filter parses');
@@ -179,7 +179,7 @@ test('any filter', function(t) {
 test('bad any filter', function(t) {
   var filter = '(foo === "baz" && foo === "bar" && foo === "qux")';
 
-  t.ifError(logicFilterString(filter), 'Cannot use "and" for one field');
+  t.ifError(logicFilterString.parse(filter), 'Cannot use "and" for one field');
   t.end();
 });
 
@@ -187,7 +187,7 @@ test('bad any filter', function(t) {
 test('not any filter', function(t) {
   var filter = '!(foo === "baz" || foo === "bar" || foo === "qux")';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     not: {
       foo: ['baz', 'bar', 'qux']
     }
@@ -200,7 +200,7 @@ test('not any filter', function(t) {
 test('literal object filter', function(t) {
   var filter = 'foo === {bar: "baz"}';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: {
       value: {
         bar: 'baz'
@@ -215,7 +215,7 @@ test('literal object filter', function(t) {
 test('inner object filter', function(t) {
   var filter = 'foo.bar === "baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: {
       bar: 'baz'
     }
@@ -228,7 +228,7 @@ test('inner object filter', function(t) {
 test('inner object any filter', function(t) {
   var filter = 'foo.bar === "baz" || foo.bar == "qux"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: {
       bar: ['baz', 'qux']
     }
@@ -241,7 +241,7 @@ test('inner object any filter', function(t) {
 test('triple nested object filter', function(t) {
   var filter = 'foo.bar.qux === "baz"';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: {
       bar: {
         qux: 'baz'
@@ -256,7 +256,7 @@ test('triple nested object filter', function(t) {
 test('any with array filter', function(t) {
   var filter = 'foo === "bar" || foo === [1, 2, 3]';
 
-  t.deepEqual(logicFilterString(filter), {
+  t.deepEqual(logicFilterString.parse(filter), {
     foo: ['bar', [1, 2, 3]]
   },
   'Any with array filter parses');
