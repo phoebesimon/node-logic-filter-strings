@@ -2,6 +2,7 @@ var test = require('tape');
 
 var parser = require('../lib/parser');
 
+
 test('simple condition', function(t) {
   t.deepEqual(
     parser.condition.parse('foo === "bar"').value,
@@ -151,9 +152,10 @@ test('simple notted expressions', function(t) {
 test('filter', function(t) {
   t.deepEqual(
     parser.filter.parse('!(foo && bar) && (baz == "qux" || qux == "foo")').value,
-    [['!', [['foo'], '&&', ['bar']]], '&&', [['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]],
+    [[['!', [['foo'], '&&', ['bar']]], '&&', [['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]]],
     'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
   );
+
   t.deepEqual(
     parser.filter.parse('!(foo && bar == "baz")').value,
     [
@@ -173,7 +175,6 @@ test('filter', function(t) {
     'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
   );
 
-  console.log(parser.filter.parse('!(foo == "baz")'));
   t.deepEqual(
     parser.filter.parse('!(foo == "baz")').value,
     [
@@ -192,7 +193,7 @@ test('filter', function(t) {
 
   t.deepEqual(
     parser.filter.parse('foo && bar && !(baz == "qux" || qux == "foo")').value,
-    [[['foo'], '&&', ['bar']], '&&', ['!', ['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]],
+    [[[['foo'], '&&', ['bar']], '&&', ['!', [['baz', '==', 'qux'], '||', ['qux', '==', 'foo']]]]],
     'if (not foo and bar) and ((baz equals qux) or (qux equals foo))'
   );
 
