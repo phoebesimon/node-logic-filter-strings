@@ -1,6 +1,6 @@
 var test = require('tape');
 
-var parser = require('../lib/parser');
+var parser = require('../lib/parser2');
 
 
 test('tokens', function(t) {
@@ -227,7 +227,7 @@ test('simple condition', function(t) {
 });
 
 
-test('simple predicates', function(t) {
+/*test('simple predicates', function(t) {
   t.deepEqual(
     parser.predicate.parse('qux').value,
     'qux',
@@ -282,8 +282,34 @@ test('simple notted expressions', function(t) {
 
   t.end();
 });
-
+*/
 test('simple filters', function(t) {
+  debugger;
+  t.deepEqual(
+    parser.filter.parse('foo === "bar"').value,
+    [['foo', '===', 'bar']],
+    'foo does not exist and bar exists'
+  );
+  console.log('BLAB: ', parser.filter.parse('foo'))
+  t.deepEqual(
+    parser.filter.parse('foo').value,
+    ['foo'],
+    'foo exists'
+  );
+  console.log('BLOB: ', parser.filter.parse('foo && bar'))
+  t.deepEqual(
+    parser.filter.parse('foo && bar').value,
+    ['foo', '&&', 'bar'],
+    'foo does not exist and bar exists'
+  );
+
+  console.log("BLAH", parser.filter.parse('(foo === "bar" && bar === "baz") || qux === "foo"'))
+  t.deepEqual(
+    parser.filter.parse('(foo === "bar" && bar === "baz") || qux === "foo"').value,
+    [[['foo', '===', 'bar'], '&&', ['bar', '===', 'baz']], '||', ['qux', '===', 'foo']],
+    'foo does not exist and bar exists'
+  );
+////////////////////////////////////////////
   t.deepEqual(
     parser.filter.parse('!foo && bar').value,
     [[['!foo'], '&&', ['bar']]],
@@ -679,7 +705,7 @@ test('negative conditions', function(t) {
   t.end();
 });
 
-test('negative predicates', function(t) {
+/*test('negative predicates', function(t) {
   t.error(parser.predicate.parse('foo == baz').status, 'Unquoted value');
   t.error(parser.predicate.parse('!!foo').status, 'Double notted key');
   t.error(parser.predicate.parse('foo !=== "bar"').status, 'Incredible strict inequality');
@@ -695,7 +721,7 @@ test('negative predicates', function(t) {
   t.error(parser.predicate.parse('!foo == "baz"').status, 'Not condition missing parens');
   t.error(parser.predicate.parse('42 == "baz"').status, 'Invalid numeric key');
   t.end();
-});
+});*/
 
 test('negative expressions', function(t) {
   t.error(parser.expressions.parse('foo == "baz" &&').status, 'No rhs to expression');
