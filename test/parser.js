@@ -309,19 +309,19 @@ test('simple filters', function(t) {
 
   t.deepEqual(
     parser.filter.parse('!foo && bar').value,
-    [['!foo'], '&&', ['bar']],
+    [['!', ['foo']], '&&', ['bar']],
     'foo does not exist and bar exists'
   );
 
   t.deepEqual(
     parser.filter.parse('foo && !bar').value,
-    [['foo'], '&&', ['!bar']],
+    [['foo'], '&&', ['!', ['bar']]],
     'foo exists and bar does not exist'
   );
 
   t.deepEqual(
     parser.filter.parse('!foo && !bar').value,
-    [['!foo'], '&&', ['!bar']],
+    [['!', ['foo']], '&&', ['!', ['bar']]],
     'foo does not exist and bar does not exist'
   );
 
@@ -351,7 +351,7 @@ test('simple filters', function(t) {
 
   t.deepEqual(
     parser.filter.parse('!qux').value,
-    ['!qux'],
+    ['!', ['qux']],
     'Non-existance predicate'
   );
 
@@ -568,21 +568,21 @@ test('complex filters', function(t) {
   //FAIL
   t.deepEqual(
     parser.filter.parse('!(foo) && bar').value,
-    [['!foo'], '&&', ['bar']],
+    [['!', ['foo']], '&&', ['bar']],
     'if not (foo) && bar'
   );
 
   //FAIL
   t.deepEqual(
     parser.filter.parse('foo && !(bar)').value,
-    [['foo'], '&&', ['!bar']],
+    [['foo'], '&&', ['!', ['bar']]],
     'if foo and not (bar)'
   );
 
   //FAIL
   t.deepEqual(
     parser.filter.parse('!(foo) && !(bar)').value,
-    [['!foo'], '&&', ['!bar']],
+    [['!', ['foo']], '&&', ['!', ['bar']]],
     'if not (foo) and not (bar)'
   );
 
@@ -750,6 +750,7 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('foo bar').status, 'Missing operator');
   t.error(parser.filter.parse('42 || foo').status, 'Invalid numeric key');
   t.error(parser.filter.parse('foo == baz').status, 'Unquoted value');
+  // FAILS MAYBE VALID NOW? Parses as ['!', ['!', ['foo']]]
   t.error(parser.filter.parse('!!foo').status, 'Double notted key');
   t.error(parser.filter.parse('foo !=== "bar"').status, 'Incredible strict inequality');
   t.error(parser.filter.parse('foo ===! "bar"').status, 'Incredible strict reverse inequality');
@@ -760,6 +761,8 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('^foo').status, 'Invalid existence operator');
   t.error(parser.filter.parse('!(foo == "baz"').status, 'Not condition missing closing paren');
   t.error(parser.filter.parse('!foo == "baz")').status, 'Not condition missing opening paren');
+  // FAILING MAYBE VALID - Parses as ['!', ['foo', '==', 'baz']]
+  console.log('NOT CONDITION MISSING PARENS', parser.filter.parse('!foo == "baz"'));
   t.error(parser.filter.parse('!foo == "baz"').status, 'Not condition missing parens');
   t.error(parser.filter.parse('42 == "baz"').status, 'Invalid numeric key');
   t.error(parser.filter.parse('foo == baz').status, 'Unquoted value');
