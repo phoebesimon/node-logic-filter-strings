@@ -1,6 +1,6 @@
 var test = require('tape');
 
-var parser = require('../lib/parser2');
+var parser = require('../lib/parser');
 
 
 test('tokens', function(t) {
