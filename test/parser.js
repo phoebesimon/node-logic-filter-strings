@@ -633,6 +633,126 @@ test('complex filters', function(t) {
     'if !(foo equals baz and bar equals qux) and a equals b'
   );
 
+  t.deepEqual(
+    parser.filter.parse('foo === "baz" && !(bar === "qux" || a === "b")').value,
+    [['foo', '===', 'baz'], '&&', ['!', [['bar', '===', 'qux'], '||', ['a', '===', 'b']]]],
+    'if foo equals bar and (not (bar equals qux) or (a equals b))'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(foo === "baz" && !(bar === "qux"  || x === "y")) && a === "b"').value,
+    [[['foo', '===', 'baz'], '&&', ['!', [['bar', '===', 'qux'], '||', ['x', '===', 'y']]]], '&&', ['a', '===', 'b']],
+    'if (foo equals baz and not((bar equals qux) or (x equals y)) and a equals b'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo && bar === "baz"').value,
+    [['foo'], '&&', ['bar', '===', 'baz']],
+    'if foo and bar equals baz'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('bar === "baz" && foo').value,
+    [['bar', '===', 'baz'], '&&', ['foo']],
+    'if bar equals baz and foo'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo && (bar === "baz")').value,
+    [['foo'], '&&', ['bar', '===', 'baz']],
+    'if foo and (bar equals baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(bar === "baz") && foo').value,
+    [['bar', '===', 'baz'], '&&', ['foo']],
+    'if (bar equals baz) and foo'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('!foo && (bar === "baz")').value,
+    [['!', ['foo']], '&&', ['bar', '===', 'baz']],
+    'if not foo and (bar equals baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(bar === "baz") && !foo').value,
+    [['bar', '===', 'baz'], '&&', ['!', ['foo']]],
+    'if (bar equals baz) and not foo'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo && !(bar === "baz")').value,
+    [['foo'], '&&', ['!', ['bar', '===', 'baz']]],
+    'if foo and not(bar equals baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo && !bar === "baz"').value,
+    [['foo'], '&&', ['!', ['bar', '===', 'baz']]],
+    'if foo and not(bar equals baz) (no parens)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('!(bar === "baz") && foo').value,
+    [['!', ['bar', '===', 'baz']], '&&', ['foo']],
+    'if not(bar equals baz) and foo'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('bar === "baz" && (foo || baz)').value,
+    [['bar', '===', 'baz'], '&&', [['foo'], '||', ['baz']]],
+    'if bar equals baz and (foo or baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('bar === "baz" && !(foo || baz)').value,
+    [['bar', '===', 'baz'], '&&', ['!', [['foo'], '||', ['baz']]]],
+    'if bar equals baz and not(foo or baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo === "baz" && (foo && bar === "qux")').value,
+    [['foo', '===', 'baz'], '&&', [['foo'], '&&', ['bar', '===', 'qux']]],
+    'if foo equals baz and (foo and bar equals baz)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('foo === "baz" && (!foo && bar === "qux")').value,
+    [['foo', '===', 'baz'], '&&', [['!', ['foo']], '&&', ['bar', '===', 'qux']]],
+    'if foo equals baz and (not foo and bar equals qux)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(foo === "baz" && foo) && bar === "qux"').value,
+    [[['foo', '===', 'baz'], '&&', ['foo']], '&&', ['bar', '===', 'qux']],
+    'if (foo equals baz and foo) and bar equals qux'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(foo && foo === "baz") && (bar && bar === "qux")').value,
+    [[['foo'], '&&', ['foo', '===', 'baz']], '&&', [['bar'], '&&', ['bar', '===', 'qux']]],
+    'if (foo and foo equals baz) and (bar and bar equals qux)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('!(foo && foo === "baz") && (bar && bar === "qux")').value,
+    [['!', [['foo'], '&&', ['foo', '===', 'baz']]], '&&', [['bar'], '&&', ['bar', '===', 'qux']]],
+    'if not(foo and foo equals baz) and (bar and bar equals qux)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('(foo && foo === "baz") && !(bar && bar === "qux")').value,
+    [[['foo'], '&&', ['foo', '===', 'baz']], '&&', ['!', [['bar'], '&&', ['bar', '===', 'qux']]]],
+    'if (foo and foo equals baz) and not(bar and bar equals qux)'
+  );
+
+  t.deepEqual(
+    parser.filter.parse('!(foo && foo === "baz") && !(bar && bar === "qux")').value,
+    [['!', [['foo'], '&&', ['foo', '===', 'baz']]], '&&', ['!', [['bar'], '&&', ['bar', '===', 'qux']]]],
+    'if not(foo and foo equals baz) and not(bar and bar equals qux)'
+  );
+
   t.end();
 });
 
@@ -704,5 +824,7 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('!(foo bar)').status, 'Missing operator within notted expression');
   t.error(parser.filter.parse('foo && bar && qux').status, 'Operators cannot share operands');
   t.error(parser.filter.parse('foo && !bar && qux').status, 'Operators cannot share operands');
+  t.error(parser.filter.parse('foo == bar == qux').status, 'Cannot have triple equals');
+  t.error(parser.filter.parse('(foo == bar) == qux').status, 'Conditions cannot equal values');
   t.end();
 });
