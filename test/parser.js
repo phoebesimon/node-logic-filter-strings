@@ -79,6 +79,7 @@ test('tokens', function(t) {
   t.end();
 });
 
+
 test('negative tokens', function(t) {
   t.error(
     parser.tokens.array.parse('[1, 2, 3, "foo",]').status,
@@ -223,68 +224,23 @@ test('simple condition', function(t) {
     'Decimal value'
   );
 
-  t.end();
-});
-
-
-/*test('simple predicates', function(t) {
   t.deepEqual(
-    parser.predicate.parse('qux').value,
-    'qux',
-    'Existence predicate'
+    parser.filter.parse('!foo == "baz"').value,
+    ['!', ['foo', '==', 'baz']],
+    'if not (foo equals baz)'
   );
 
   t.deepEqual(
-    parser.predicate.parse('!qux').value,
-    '!qux',
-    'Non-existance predicate'
-  );
-
-  t.deepEqual(
-    parser.predicate.parse('foo == "baz"').value,
-    ['foo', '==', 'baz'],
-    'Condition predicate'
+    parser.filter.parse('!!foo').value,
+    ['!', ['!', ['foo']]],
+    'if not(not(foo))'
   );
 
   t.end();
 });
 
 
-test('simple expressions', function(t) {
-  t.deepEqual(
-    parser.expression.parse('!foo && bar').value,
-    [['!foo'], '&&', ['bar']],
-    'foo does not exist and bar exists'
-  );
-
-  t.deepEqual(
-    parser.expression.parse('foo || bar === "baz"').value,
-    [['foo'], '||', ['bar', '===', 'baz']],
-    'foo exists or bar strictly equals baz'
-  );
-
-  t.deepEqual(
-    parser.expression.parse('foo || bar === [1,2,3]').value,
-    [['foo'], '||', ['bar', '===', [1, 2, 3]]],
-    'foo exists or bar strictly equals [1, 2, 3]'
-  );
-
-  t.end();
-});
-
-
-test('simple notted expressions', function(t) {
-  t.deepEqual(
-    parser.nottedExpression.parse('!(foo && bar)').value,
-    ['!', [['foo'], '&&', ['bar']]],
-    'if not foo and bar'
-  );
-
-  t.end();
-});
-*/
 test('simple filters', function(t) {
-  debugger;
   t.deepEqual(
     parser.filter.parse('foo === "bar"').value,
     ['foo', '===', 'bar'],
@@ -521,14 +477,12 @@ test('complex filters', function(t) {
     'if baz and not(foo and bar)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('(bar && !(foo && bar)) && qux').value,
     [[['bar'], '&&', ['!', [['foo'], '&&', ['bar']]]], '&&', ['qux']],
     'if bar and not(foo and bar) and qux'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('(bar && (foo && bar)) && qux').value,
     [[['bar'], '&&', [['foo'], '&&', ['bar']]], '&&', ['qux']],
@@ -565,21 +519,18 @@ test('complex filters', function(t) {
     'if (foo and bar) or (baz and qux)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('!(foo) && bar').value,
     [['!', ['foo']], '&&', ['bar']],
     'if not (foo) && bar'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('foo && !(bar)').value,
     [['foo'], '&&', ['!', ['bar']]],
     'if foo and not (bar)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('!(foo) && !(bar)').value,
     [['!', ['foo']], '&&', ['!', ['bar']]],
@@ -610,7 +561,6 @@ test('complex filters', function(t) {
     'if foo equals baz or bar equals qux'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('(foo === "baz") || (bar === "qux")').value,
     [['foo', '===', 'baz'], '||', ['bar', '===', 'qux']],
@@ -635,7 +585,6 @@ test('complex filters', function(t) {
     'if foo equals baz and (bar equals qux and a equals b)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('foo === "baz" && ((bar === "qux"  || x === "y") && a === "b")').value,
     [['foo', '===', 'baz'], '&&', [[['bar', '===', 'qux'], '||', ['x', '===', 'y']], '&&', ['a', '===', 'b']]],
@@ -660,14 +609,12 @@ test('complex filters', function(t) {
     'if !(foo equals baz) and !(bar equals qux)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('(!(foo === "baz") && !(bar === "qux")) && !(a === "b")').value,
     [[['!', ['foo', '===', 'baz']], '&&', ['!', ['bar', '===', 'qux']]], '&&', ['!', ['a', '===', 'b']]],
     'if !(foo equals baz) and !(bar equals qux) and !(a equals b)'
   );
 
-  //FAIL
   t.deepEqual(
     parser.filter.parse('(!(foo === "baz") && !(bar === "qux")) && !(a === "b")').value,
     [[['!', ['foo', '===', 'baz']], '&&', ['!', ['bar', '===', 'qux']]], '&&', ['!', ['a', '===', 'b']]],
@@ -701,23 +648,6 @@ test('negative conditions', function(t) {
   t.end();
 });
 
-/*test('negative predicates', function(t) {
-  t.error(parser.predicate.parse('foo == baz').status, 'Unquoted value');
-  t.error(parser.predicate.parse('!!foo').status, 'Double notted key');
-  t.error(parser.predicate.parse('foo !=== "bar"').status, 'Incredible strict inequality');
-  t.error(parser.predicate.parse('foo ===! "bar"').status, 'Incredible strict reverse inequality');
-  t.error(parser.predicate.parse('(foo == bar').status, 'Mismatched parens');
-  t.error(parser.predicate.parse('foo == [1,2,3').status, 'Unclosed array');
-  t.error(parser.predicate.parse('foo == {baz: "qux"').status, 'Unclosed object');
-  t.error(parser.predicate.parse('foo == {baz: qux}').status, 'Unquoted object value');
-  t.error(parser.predicate.parse('foo == 42.').status, 'Incomplete decimal value');
-  t.error(parser.predicate.parse('^foo').status, 'Invalid existence operator');
-  t.error(parser.predicate.parse('!(foo == "baz"').status, 'Not condition missing closing paren');
-  t.error(parser.predicate.parse('!foo == "baz")').status, 'Not condition missing opening paren');
-  t.error(parser.predicate.parse('!foo == "baz"').status, 'Not condition missing parens');
-  t.error(parser.predicate.parse('42 == "baz"').status, 'Invalid numeric key');
-  t.end();
-});*/
 
 test('negative expressions', function(t) {
   t.error(parser.expression.parse('foo == "baz" &&').status, 'No rhs to expression');
@@ -736,6 +666,7 @@ test('negative expressions', function(t) {
   t.end();
 });
 
+
 test('negative filters', function(t) {
   t.error(parser.filter.parse('foo == "baz" &&').status, 'No rhs to expression');
   t.error(parser.filter.parse('&& bar').status, 'No lhs to expression');
@@ -750,8 +681,6 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('foo bar').status, 'Missing operator');
   t.error(parser.filter.parse('42 || foo').status, 'Invalid numeric key');
   t.error(parser.filter.parse('foo == baz').status, 'Unquoted value');
-  // FAILS MAYBE VALID NOW? Parses as ['!', ['!', ['foo']]]
-  t.error(parser.filter.parse('!!foo').status, 'Double notted key');
   t.error(parser.filter.parse('foo !=== "bar"').status, 'Incredible strict inequality');
   t.error(parser.filter.parse('foo ===! "bar"').status, 'Incredible strict reverse inequality');
   t.error(parser.filter.parse('(foo == bar').status, 'Mismatched parens');
@@ -761,9 +690,6 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('^foo').status, 'Invalid existence operator');
   t.error(parser.filter.parse('!(foo == "baz"').status, 'Not condition missing closing paren');
   t.error(parser.filter.parse('!foo == "baz")').status, 'Not condition missing opening paren');
-  // FAILING MAYBE VALID - Parses as ['!', ['foo', '==', 'baz']]
-  console.log('NOT CONDITION MISSING PARENS', parser.filter.parse('!foo == "baz"'));
-  t.error(parser.filter.parse('!foo == "baz"').status, 'Not condition missing parens');
   t.error(parser.filter.parse('42 == "baz"').status, 'Invalid numeric key');
   t.error(parser.filter.parse('foo == baz').status, 'Unquoted value');
   t.error(parser.filter.parse('foo !=== "bar"').status, 'Incredible strict inequality');
@@ -776,5 +702,7 @@ test('negative filters', function(t) {
   t.error(parser.filter.parse('!(foo) &&').status, 'Missing rhs of conjunction');
   t.error(parser.filter.parse('!foo !bar').status, 'Missing operator');
   t.error(parser.filter.parse('!(foo bar)').status, 'Missing operator within notted expression');
+  t.error(parser.filter.parse('foo && bar && qux').status, 'Operators cannot share operands');
+  t.error(parser.filter.parse('foo && !bar && qux').status, 'Operators cannot share operands');
   t.end();
 });
