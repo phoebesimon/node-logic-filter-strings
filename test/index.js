@@ -3,10 +3,26 @@ var test = require('tape');
 var logicFilterString = require('../index.js');
 
 
+test('simplest exists filter', function(t) {
+  var filter = 'foo';
+
+  t.deepEqual(logicFilterString(filter), {'foo': {exists: true}}, 'Simple exists filter parses');
+  t.end();
+});
+
+
+test('simplest not exists filter', function(t) {
+  var filter = '!foo';
+
+  t.deepEqual(logicFilterString(filter), {not: {'foo': {exists: true}}}, 'Simple not exists filter parses');
+  t.end();
+});
+
+
 test('simplest filter', function(t) {
   var filter = 'foo === "bar"';
 
-  t.deepEqual(logicFilterString(filter), {'foo': 'bar'}, 'Simple filter parses');
+  t.deepEqual(logicFilterString(filter), {'foo': ['bar']}, 'Simple filter parses');
   t.end();
 });
 
@@ -16,8 +32,8 @@ test('simple and filter', function(t) {
 
   t.deepEqual(logicFilterString(filter), {
     and: {
-      'foo': 'bar',
-      'bar': 'baz'
+      'foo': ['bar'],
+      'bar': ['baz qux']
     }
   },
   'Simple and filters');
@@ -30,8 +46,8 @@ test('simple or filter', function(t) {
 
   t.deepEqual(logicFilterString(filter), {
     or: {
-      'foo': 'bar',
-      'bar': 'baz'
+      'foo': ['bar'],
+      'bar': ['baz qux']
     }
   },
   'Simple or filters');
@@ -44,7 +60,7 @@ test('simple not filter', function(t) {
 
   t.deepEqual(logicFilterString(filter), {
     not: {
-      'foo': 'bar'
+      'foo': ['bar']
     }
   },
   'Simple not filters');
@@ -122,10 +138,10 @@ test('or->and filter', function(t) {
   t.deepEqual(logicFilterString(filter), {
     or: {
       and: {
-        'foo': 'bar',
-        'bar': 'baz'
+        'foo': ['bar'],
+        'bar': ['baz']
       },
-      'qux': 'foo'
+      'qux': ['foo']
     }
   },
   'Nested or->and filters');
@@ -141,7 +157,7 @@ test('and->exists filter', function(t) {
       foo: {
         exists: true
       },
-      'bar': 'baz'
+      'bar': ['baz']
     }
   },
   'and->exists filters');
@@ -154,10 +170,12 @@ test('and->not exists filter', function(t) {
 
   t.deepEqual(logicFilterString(filter), {
     and: {
-      foo: {
-        exists: false
+      not: {
+        foo: {
+          exists: true
+        }
       },
-      'bar': 'baz'
+      'bar': ['baz']
     }
   },
   'and->not exists filters');
@@ -166,30 +184,48 @@ test('and->not exists filter', function(t) {
 
 
 test('any filter', function(t) {
-  var filter = '(foo === "baz" || foo === "bar" || foo === "qux")';
+  var filter = '(foo === "baz" || foo === "bar") || foo === "qux"';
 
   t.deepEqual(logicFilterString(filter), {
-    foo: ['baz', 'bar', 'qux']
+    or: {
+      foo: ['qux'],
+      or: {
+        foo: ['baz', 'bar']
+      }
+    }
   },
   'Any filters');
   t.end();
 });
 
 
-test('bad any filter', function(t) {
-  var filter = '(foo === "baz" && foo === "bar" && foo === "qux")';
+test('nonsensical any filter', function(t) {
+  var filter = '(foo === "baz" && foo === "bar") && foo === "qux"';
 
-  t.ifError(logicFilterString(filter), 'Cannot use "and" for one field');
+  t.deepEqual(logicFilterString(filter), {
+    and: {
+      foo: ['qux'],
+      and: {
+        foo: ['baz', 'bar']
+      }
+    }
+  },
+  'nonsensical any filters');
   t.end();
 });
 
 
 test('not any filter', function(t) {
-  var filter = '!(foo === "baz" || foo === "bar" || foo === "qux")';
+  var filter = '!(foo === "baz" || foo === "bar") || foo === "qux"';
 
   t.deepEqual(logicFilterString(filter), {
-    not: {
-      foo: ['baz', 'bar', 'qux']
+    or: {
+      foo: ['qux'],
+      not: {
+        or: {
+          foo: ['baz', 'bar']
+        }
+      }
     }
   },
   'Not->any filters');
@@ -201,13 +237,41 @@ test('literal object filter', function(t) {
   var filter = 'foo === {bar: "baz"}';
 
   t.deepEqual(logicFilterString(filter), {
+    foo: [{bar: 'baz'}]
+  },
+  'Literal object filters');
+  t.end();
+});
+
+
+test('dot notation exists', function(t) {
+  var filter = 'foo.bar';
+
+  t.deepEqual(logicFilterString(filter), {
     foo: {
-      value: {
-        bar: 'baz'
+      bar: {
+        exists: true
       }
     }
   },
-  'Literal object filters');
+  'dot notation exists');
+  t.end();
+});
+
+
+test('dot notation not exists', function(t) {
+  var filter = '!foo.bar';
+
+  t.deepEqual(logicFilterString(filter), {
+    not: {
+      foo: {
+        bar: {
+          exists: true
+        }
+      }
+    }
+  },
+  'dot notation not exists');
   t.end();
 });
 
@@ -217,7 +281,7 @@ test('inner object filter', function(t) {
 
   t.deepEqual(logicFilterString(filter), {
     foo: {
-      bar: 'baz'
+      bar: ['baz']
     }
   },
   'Inner object filters');
@@ -229,8 +293,10 @@ test('inner object any filter', function(t) {
   var filter = 'foo.bar === "baz" || foo.bar == "qux"';
 
   t.deepEqual(logicFilterString(filter), {
-    foo: {
-      bar: ['baz', 'qux']
+    or: {
+      foo: {
+        bar: ['baz', 'qux']
+      }
     }
   },
   'Inner object any filters');
@@ -244,7 +310,7 @@ test('triple nested object filter', function(t) {
   t.deepEqual(logicFilterString(filter), {
     foo: {
       bar: {
-        qux: 'baz'
+        qux: ['baz']
       }
     }
   },
@@ -257,7 +323,9 @@ test('any with array filter', function(t) {
   var filter = 'foo === "bar" || foo === [1, 2, 3]';
 
   t.deepEqual(logicFilterString(filter), {
-    foo: ['bar', [1, 2, 3]]
+    or: {
+      foo: ['bar', [1, 2, 3]]
+    }
   },
   'Any with array filters');
   t.end();
