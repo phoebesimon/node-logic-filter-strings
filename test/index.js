@@ -74,8 +74,8 @@ test('and->nots filter (De Morgans)', function(t) {
   t.deepEqual(logicFilterString(filter), {
     not: {
       or: {
-        'foo': 'bar',
-        'bar': 'baz'
+        'foo': ['bar'],
+        'bar': ['baz']
       }
     }
   },
@@ -90,8 +90,8 @@ test('not->or filter (De Morgans)', function(t) {
   t.deepEqual(logicFilterString(filter), {
     not: {
       or: {
-        'foo': 'bar',
-        'bar': 'baz'
+        'foo': ['bar'],
+        'bar': ['baz']
       }
     }
   },
@@ -106,8 +106,8 @@ test('or->nots filter (De Morgans)', function(t) {
   t.deepEqual(logicFilterString(filter), {
     not: {
       and: {
-        'foo': 'bar',
-        'bar': 'baz'
+        'foo': ['bar'],
+        'bar': ['baz']
       }
     }
   },
@@ -122,8 +122,8 @@ test('not->and filter (De Morgans)', function(t) {
   t.deepEqual(logicFilterString(filter), {
     not: {
       and: {
-        'foo': 'bar',
-        'bar': 'baz'
+        'foo': ['bar'],
+        'bar': ['baz']
       }
     }
   },
@@ -328,5 +328,10 @@ test('any with array filter', function(t) {
     }
   },
   'Any with array filters');
+  t.end();
+});
+
+test('unparsable string', function(t) {
+  t.throws(logicFilterString.bind(null, 'this-is-unparsable'));
   t.end();
 });

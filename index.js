@@ -39,21 +39,10 @@ function condition(filterObj, key, value) {
 }
 
 function notCondition(filterObj, key, value) {
-  if (!value) {
-    filterObj[key] = {
-      exists: false
-    };
-    return;
-  } else {
-    if (!filterObj.hasOwnProperty('not')) {
-      filterObj.not = {};
-    }
-    if (filterObj.hasOwnProperty(key) && filterObj[key]){
-      filterObj.not[key].push(value);
-    } else {
-      filterObj.not[key] = [value];
-    }
+  if (!filterObj.hasOwnProperty('not')) {
+    filterObj.not = {};
   }
+  filterObj.not[key] = [value];
 }
 
 
@@ -69,10 +58,6 @@ function convert(filterAST) {
 
 
   function _convert(obj, val) {
-    if (!(val instanceof Array)) {
-      throw new Error('Invalid expression; expected array');
-    }
-
     if (val.length === 1 && typeof val[0] === 'string') {
       //Exists condition
       condition(obj, val[0]);
@@ -97,8 +82,6 @@ function convert(filterAST) {
       }
       _convert(obj[label], val[0]);
       _convert(obj[label], val[2]);
-    } else {
-      throw new Error('Unparseable');
     }
 
     return obj;
