@@ -1,6 +1,6 @@
 {
   "name": "logic-filter-strings",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "An algebraic expression parser for stream logic filters",
   "main": "index.js",
   "scripts": {
