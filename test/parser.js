@@ -783,6 +783,12 @@ test('complex filters', function(t) {
     'if not(foo and foo equals baz) and not(bar and bar equals qux)'
   );
 
+  t.deepEqual(
+    parser.filter.parse('metrics.duration.valueI32===70').value,
+    ['metrics.duration.valueI32', '===', 70],
+    'if foo.bar.qux equals 70'
+  );
+
   t.end();
 });
 
