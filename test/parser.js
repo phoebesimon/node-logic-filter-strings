@@ -349,31 +349,31 @@ test('simple filters', function(t) {
 
   t.deepEqual(
     parser.filter.parse('(foo != "bar") && (baz != "qux")').value,
-    ['!', [['foo', '==', 'bar'], '||', ['baz', '==', 'qux']]],
+    [['foo', '!=', 'bar'], '&&', ['baz', '!=', 'qux']],
     'Demorgans and'
   );
 
   t.deepEqual(
     parser.filter.parse('foo != "bar" && baz != "qux"').value,
-    ['!', [['foo', '==', 'bar'], '||', ['baz', '==', 'qux']]],
+    [['foo', '!=', 'bar'], '&&', ['baz', '!=', 'qux']],
     'Demorgans and'
   );
 
   t.deepEqual(
     parser.filter.parse('(foo != "bar") || (baz != "qux")').value,
-    ['!', [['foo', '==', 'bar'], '&&', ['baz', '==', 'qux']]],
+    [['foo', '!=', 'bar'], '||', ['baz', '!=', 'qux']],
     'Demorgans or'
   );
 
   t.deepEqual(
     parser.filter.parse('((foo != "bar") || (baz != "qux")) && foo').value,
-    [['!', [['foo', '==', 'bar'], '&&', ['baz', '==', 'qux']]], '&&', ['foo']],
+    [[['foo', '!=', 'bar'], '||', ['baz', '!=', 'qux']], '&&', ['foo']],
     'Demorgans or and foo'
   );
 
   t.deepEqual(
     parser.filter.parse('foo || ((foo != "bar") || (baz != "qux"))').value,
-    [['foo'], '||', ['!', [['foo', '==', 'bar'], '&&', ['baz', '==', 'qux']]]],
+    [['foo'], '||', [['foo', '!=', 'bar'], '||', ['baz', '!=', 'qux']]],
     'foo or Demorgans or'
   );
 
