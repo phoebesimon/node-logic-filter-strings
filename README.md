@@ -14,16 +14,11 @@ var obj = logicFilterString('foo === "bar"&&bar === "baz qux"');
 
 Obj will be:
 ```js
-{
-  and: {
-    'foo': ['bar'],
-    'bar': ['baz qux']
-  }
-}
+[['foo', '===', 'bar'], '&&', ['bar', '===', 'baz qux']]
 ```
 
 ##Filter Language
-This interpreter was desgined with the end goal of being able to provide rules for filtering JSON object streams. It was meant to be used by `node-logic-filter` as an alternate means of providing filter rules. In general, strings on the left side of an equality represent keys in an object, and strings/numbers/arrays/objects on the right side of an equality represent values to compare against. You are also able to use &&, ||, and ! as you might expect.
+This interpreter was desgined with the end goal of being able to provide rules for filtering JSON object streams. It was meant to be used by `node-logic-filter` as the means of parsing filter rules. In general, strings on the left side of an equality represent keys in an object, and strings/numbers/arrays/objects on the right side of an equality represent values to compare against. You are also able to use &&, ||, and ! to combine conditions/expressions as you might expect.
 
 ###Case: foo exists in the comparison object
 ```
